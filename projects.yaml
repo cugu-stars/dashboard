@@ -1,0 +1,61 @@
+table:
+  - name: icon
+    enabled: ['icon']
+  - name: link
+    enabled: ['link']
+  - name: build
+    enabled: ['azure', 'gitlab']
+    disabled: ['travis']
+  - name: coverage
+    enabled: ['gitlab-coverage']
+    disabled: ['codecov']
+  - name: report
+    disabled: ['goreportcard']
+  - name: lint
+    disabled: ['golangci']
+  - name: issues
+    enabled: ['github-issues']
+  - name: pullrequests
+    enabled: ['github-pullrequests']
+  - name: version
+    enabled: ['github-version']
+  - name: lastcommit
+    enabled: ['github-lastcommit']
+  - name: newcommits
+    enabled: ['github-newcommits']
+  - name: watchers
+    enabled: ['github-watchers']
+  - name: stars
+    enabled: ['github-stars']
+  - name: forks
+    enabled: ['github-forks']
+  - name: size
+    enabled: ['github-size']
+
+categories:
+  - name: index
+    projects:
+    - url: https://github.com/cugu/afro
+      enable: ['travis']
+    - url: https://github.com/cugu/apfs.ksy
+      disable: ["version", "newcommits", "build"]
+    - url: https://github.com/cugu/awesome-forensics
+      disable: ["version", "newcommits"]
+      enable: ['travis']
+    - url: https://github.com/cugu/forensicartifacts
+      azure-definition-id: 2
+      goimportpath: dfir.software/forensicartifacts
+      enable: ['goreportcard', 'golangci', 'codecov']
+    - url: https://github.com/cugu/fslib
+      azure-definition-id: 3
+      goimportpath: dfir.software/fslib
+      enable: ['codecov', 'goreportcard', 'golangci']
+    - url: https://github.com/cugu/go-resources
+      enable: ['travis', 'goreportcard', 'golangci']
+    - url: https://github.com/cugu/kaitaigo
+      azure-definition-id: 1
+      goimportpath: dfir.software/kaitaigo
+      enable: ['codecov', 'goreportcard', 'golangci']
+    - url: https://github.com/kaitai-io/awesome-kaitai
+      disable: ["version", "newcommits"]
+      enable: ['travis']
