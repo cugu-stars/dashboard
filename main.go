@@ -79,10 +79,11 @@ func parseInput() (config YAML, err error) {
 }
 
 func createNav(categories []Category) (buf string) {
+	links := []string{}
 	for _, categorylink := range categories {
-		buf += " - [" + categorylink.Name + "](" + categorylink.Name + ".html)"
+		links = append(links, "["+categorylink.Name+"]("+categorylink.Name+".html)")
 	}
-	return "[open in gitlab](https://gitlab.com/cugu/opensource)" + buf + "\n\n"
+	return strings.Join(links, " - ") + "\n\n"
 }
 
 func createHeader(table []Column) (buf string) {
