@@ -14,23 +14,25 @@ table:
   - name: lint
     disabled: ['golangci']
   - name: issues
-    enabled: ['github-issues']
+    enabled: ['github-issues', 'gitlab-issues']
   - name: pullrequests
-    enabled: ['github-pullrequests']
+    enabled: ['github-pullrequests', 'gitlab-mergerequests']
+  - name: branches
+    enabled: ['gitlab-branches']
   - name: version
-    enabled: ['github-version']
+    enabled: ['github-version', 'gitlab-tag']
   - name: lastcommit
-    enabled: ['github-lastcommit']
+    enabled: ['github-lastcommit', 'gitlab-lastcommit']
   - name: newcommits
     enabled: ['github-newcommits']
   - name: watchers
     enabled: ['github-watchers']
   - name: stars
-    enabled: ['github-stars']
+    enabled: ['github-stars', 'gitlab-stars']
   - name: forks
-    enabled: ['github-forks']
+    enabled: ['github-forks', 'gitlab-forks']
   - name: size
-    enabled: ['github-size']
+    enabled: ['github-size', 'gitlab-size']
 
 categories:
   - name: index
@@ -59,3 +61,4 @@ categories:
     - url: https://github.com/kaitai-io/awesome-kaitai
       disable: ["version", "newcommits"]
       enable: ['travis']
+    - url: https://gitlab.com/dfir/libs/itemstore

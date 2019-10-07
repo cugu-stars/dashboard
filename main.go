@@ -1,15 +1,15 @@
 package main
 
 import (
+	"flag"
 	"io/ioutil"
 	"log"
 	"net/url"
-	"os"
 	"path"
 	"strings"
 
-	blackfriday "gopkg.in/russross/blackfriday.v2"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/russross/blackfriday.v2"
+	"gopkg.in/yaml.v2"
 )
 
 type YAML struct {
@@ -39,7 +39,15 @@ type Project struct {
 	Enable            []string `yaml:"enable,omitempty"`
 }
 
+var (
+	GITLAB_ACCESS_TOKEN string = ""
+)
+
 func main() {
+	flag.StringVar(&GITLAB_ACCESS_TOKEN, "gitlab", LookupEnvOrString("GITLAB_ACCESS_TOKEN", GITLAB_ACCESS_TOKEN), "service discovery url")
+
+	flag.Parse()
+
 	if err := run(); err != nil {
 		log.Fatal(err)
 	}
@@ -63,6 +71,7 @@ func run() error {
 			}
 			buf += "|\n"
 		}
+		ioutil.WriteFile(category.Name+".md", []byte(buf), 0666)
 		if err := createHTML(category.Name, []byte(buf)); err != nil {
 			return err
 		}
@@ -71,7 +80,7 @@ func run() error {
 }
 
 func parseInput() (config YAML, err error) {
-	yamlFile, err := ioutil.ReadFile(os.Args[1])
+	yamlFile, err := ioutil.ReadFile(flag.Args()[0])
 	if err != nil {
 		return
 	}
