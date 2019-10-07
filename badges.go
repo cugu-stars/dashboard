@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"strings"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/narqo/go-badge"
 )
@@ -39,6 +41,7 @@ var (
 		"gitlab-mergerequests": &GitLabMergeRequests{},
 		"gitlab-branches":      &GitLabBranches{},
 		"gitlab-issues":        &GitLabProject{"issues"},
+		"gitlab-visibility":    &GitLabProject{"visibility"},
 		"gitlab-lastcommit":    &GitLabProject{"lastcommit"},
 		"gitlab-stars":         &GitLabProject{"stars"},
 		"gitlab-forks":         &GitLabProject{"forks"},
@@ -90,11 +93,14 @@ func (b *Badge) Render(column string, project Project) string {
 	return buf.String()
 }
 
-func svgBadge(left, right string, color badge.Color, url string) string {
-	return fmt.Sprintf("[![%s](https://img.shields.io/badge/%s-%s-%s)](%s)", left, left, right, strings.TrimLeft(string(color), "#"), url)
-	// b, err := badge.RenderBytes(left, right, color)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// return strings.ReplaceAll(string(b), "\n", "")
+func svgBadge(projectname, name, left, right string, color badge.Color, url string) string {
+	b, err := badge.RenderBytes(left, right, color)
+	if err != nil {
+		panic(err)
+	}
+	os.MkdirAll(filepath.Join("badges", projectname), 0777)
+	ioutil.WriteFile(filepath.Join("badges", projectname, name+".svg"), bytes.ReplaceAll(b, []byte("\n"), []byte("")), 0666)
+
+	return fmt.Sprintf("[![%s](badges/%s/%s.svg)](%s)", name, projectname, name, url)
+	// return fmt.Sprintf("[![%s](https://img.shields.io/badge/%s-%s-%s)](%s)", left, left, right, strings.TrimLeft(string(color), "#"), url)
 }

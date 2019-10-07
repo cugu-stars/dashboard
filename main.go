@@ -44,7 +44,7 @@ var (
 )
 
 func main() {
-	flag.StringVar(&GITLAB_ACCESS_TOKEN, "gitlab", LookupEnvOrString("GITLAB_ACCESS_TOKEN", GITLAB_ACCESS_TOKEN), "service discovery url")
+	flag.StringVar(&GITLAB_ACCESS_TOKEN, "gitlab", LookupEnvOrString("GITLAB_ACCESS_TOKEN", GITLAB_ACCESS_TOKEN), "gitlab access token")
 
 	flag.Parse()
 
