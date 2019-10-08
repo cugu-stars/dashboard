@@ -58,8 +58,9 @@ func run() error {
 		return err
 	}
 
+	buf := ""
 	for _, category := range config.Categories {
-		buf := createNav(config.Categories) + "## " + category.Name + "\n\n" + createHeader(config.Table)
+		buf += "## " + category.Name + "\n\n" + createHeader(config.Table)
 		for _, project := range category.Projects {
 			project, err = parseProject(project)
 			if err != nil {
@@ -71,12 +72,10 @@ func run() error {
 			}
 			buf += "|\n"
 		}
-		ioutil.WriteFile(category.Name+".md", []byte(buf), 0666)
-		if err := createHTML(category.Name, []byte(buf)); err != nil {
-			return err
-		}
+
 	}
-	return nil
+	ioutil.WriteFile("index.md", []byte(buf), 0666)
+	return createHTML("index", []byte(buf))
 }
 
 func parseInput() (config YAML, err error) {
@@ -85,14 +84,6 @@ func parseInput() (config YAML, err error) {
 		return
 	}
 	return config, yaml.Unmarshal(yamlFile, &config)
-}
-
-func createNav(categories []Category) (buf string) {
-	links := []string{}
-	for _, categorylink := range categories {
-		links = append(links, "["+categorylink.Name+"]("+categorylink.Name+".html)")
-	}
-	return strings.Join(links, " - ") + "\n\n"
 }
 
 func createHeader(table []Column) (buf string) {
