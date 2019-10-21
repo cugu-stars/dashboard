@@ -2,11 +2,11 @@ table:
   - name: icon
     enabled: ['icon']
   - name: visibility
-    enabled: ['gitlab-visibility']
+    enabled: ['github-visibility', 'gitlab-visibility']
   - name: link
     enabled: ['link']
   - name: build
-    enabled: ['azure', 'gitlab']
+    enabled: ['azure-pipeline', 'gitlab-pipeline']
     disabled: ['travis']
   - name: coverage
     enabled: ['gitlab-coverage']
@@ -20,9 +20,9 @@ table:
   - name: pullrequests
     enabled: ['github-pullrequests', 'gitlab-mergerequests']
   - name: branches
-    enabled: ['gitlab-branches']
+    enabled: ['github-branches', 'gitlab-branches']
   - name: version
-    enabled: ['github-version', 'gitlab-tag']
+    enabled: ['github-version', 'gitlab-version']
   - name: lastcommit
     enabled: ['github-lastcommit', 'gitlab-lastcommit']
   - name: newcommits
@@ -47,16 +47,22 @@ categories:
       disable: ["version", "newcommits"]
       enable: ['travis']
     - url: https://github.com/cugu/forensicartifacts
+      azure-organization: cugu
+      azure-project: dfir
       azure-definition-id: 2
       goimportpath: dfir.software/forensicartifacts
       enable: ['goreportcard', 'golangci', 'codecov']
     - url: https://github.com/cugu/fslib
+      azure-organization: cugu
+      azure-project: dfir
       azure-definition-id: 3
       goimportpath: dfir.software/fslib
       enable: ['codecov', 'goreportcard', 'golangci']
     - url: https://github.com/cugu/go-resources
       enable: ['travis', 'goreportcard', 'golangci']
     - url: https://github.com/cugu/kaitaigo
+      azure-organization: cugu
+      azure-project: dfir
       azure-definition-id: 1
       goimportpath: dfir.software/kaitaigo
       enable: ['codecov', 'goreportcard', 'golangci']

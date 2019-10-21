@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 
@@ -32,8 +33,11 @@ type Project struct {
 	Hoster            string   `yaml:"-"`
 	Namespace         string   `yaml:"-"`
 	Name              string   `yaml:"-"`
+	AzureOrganization string   `yaml:"azure-organization,omitempty"`
+	AzureProject      string   `yaml:"azure-project,omitempty"`
 	AzureDefinitionID string   `yaml:"azure-definition-id,omitempty"`
 	GoImportPath      string   `yaml:"goimportpath,omitempty"`
+	Workflow          string   `yaml:"workflow,omitempty"`
 	URL               string   `yaml:"url,omitempty"`
 	Disable           []string `yaml:"disable,omitempty"`
 	Enable            []string `yaml:"enable,omitempty"`
@@ -41,12 +45,18 @@ type Project struct {
 
 var (
 	GITLAB_ACCESS_TOKEN string = ""
+	GITHUB_ACCESS_TOKEN string = ""
 )
 
 func main() {
 	flag.StringVar(&GITLAB_ACCESS_TOKEN, "gitlab", LookupEnvOrString("GITLAB_ACCESS_TOKEN", GITLAB_ACCESS_TOKEN), "gitlab access token")
+	flag.StringVar(&GITHUB_ACCESS_TOKEN, "github", LookupEnvOrString("GITHUB_ACCESS_TOKEN", GITHUB_ACCESS_TOKEN), "github access token")
 
 	flag.Parse()
+
+	if GITHUB_ACCESS_TOKEN == "" || GITLAB_ACCESS_TOKEN == "" {
+		log.Fatalf("Token not defined '%s' '%s'", GITHUB_ACCESS_TOKEN, GITLAB_ACCESS_TOKEN)
+	}
 
 	if err := run(); err != nil {
 		log.Fatal(err)
@@ -101,10 +111,10 @@ func parseProject(project Project) (Project, error) {
 		return Project{}, err
 	}
 	project.Hoster = u.Host
-	project.Namespace = path.Dir(u.Path)
+	project.Namespace = strings.TrimLeft(path.Dir(u.Path), "/")
 	project.Name = path.Base(u.Path)
 	if project.GoImportPath == "" {
-		project.GoImportPath = project.Hoster + project.Namespace + "/" + project.Name
+		project.GoImportPath = project.Hoster + "/" + project.Namespace + "/" + project.Name
 	}
 	return project, nil
 }
@@ -140,4 +150,11 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func LookupEnvOrString(key string, defaultVal string) string {
+	if val, ok := os.LookupEnv(key); ok {
+		return val
+	}
+	return defaultVal
 }
