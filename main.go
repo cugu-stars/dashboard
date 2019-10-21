@@ -9,7 +9,8 @@ import (
 	"path"
 	"strings"
 
-	"gopkg.in/russross/blackfriday.v2"
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
 	"gopkg.in/yaml.v2"
 )
 
@@ -133,13 +134,15 @@ func createCell(project Project, column Column) (buf string) {
 	return "|" + buf
 }
 
-func createHTML(name string, markdown []byte) error {
-	params := blackfriday.HTMLRendererParameters{
-		Flags: blackfriday.CommonHTMLFlags | blackfriday.CompletePage,
+func createHTML(name string, md []byte) error {
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.CompletePage
+	opts := html.RendererOptions{
+		Flags: htmlFlags,
 		CSS:   "style/style.css",
 	}
-	renderer := blackfriday.NewHTMLRenderer(params)
-	output := blackfriday.Run(markdown, blackfriday.WithExtensions(blackfriday.CommonExtensions), blackfriday.WithRenderer(renderer))
+	renderer := html.NewRenderer(opts)
+
+	output := markdown.ToHTML(md, nil, renderer)
 	return ioutil.WriteFile(name+".html", output, 0666)
 }
 
