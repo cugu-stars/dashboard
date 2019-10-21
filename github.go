@@ -56,6 +56,7 @@ func (b *GithubBranches) Render(column string, project Project) string {
 
 	gl := github.NewClient(tc)
 
+	// opt := github.BranchListOptions{}
 	_, response, err := gl.Repositories.ListBranches(context.Background(), project.Namespace, project.Name, &github.ListOptions{PerPage: 1})
 	if err != nil {
 		return svgBadge(project.Name, "branches", "branches", err.Error(), badge.ColorLightgrey, project.URL)
