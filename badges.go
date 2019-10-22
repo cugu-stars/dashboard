@@ -25,8 +25,8 @@ var (
 		"golangci":     &Badge{"https://img.shields.io/badge/-golangci--lint-47cad6", "https://golangci.com/r/{{.Hoster}}/{{.Namespace}}/{{.Name}}", nil},
 		"godoc":        &Badge{"https://godoc.org/{{.GoImportPath}}?status.svg", "https://godoc.org/{{.GoImportPath}}", nil},
 
-		"azure-pipeline": &Badge{"https://img.shields.io/azure-devops/build/cugu/dfir/{{.AzureDefinitionID}}", "https://dev.azure.com/cugu/dfir/_build?definitionId={{.AzureDefinitionID}}&_a=summary", isAzure},
-		"azure-coverage": &Badge{"https://img.shields.io/azure-devops/coverage/cugu/dfir/{{.AzureDefinitionID}}", "{{.URL}}", isAzure},
+		"azure-pipeline": &Badge{"https://img.shields.io/azure-devops/build/{{.AzureOrganization}}/{{.AzureProject}}/{{.AzureDefinitionID}}", "https://dev.azure.com/{{.AzureOrganization}}/{{.AzureProject}}/_build?definitionId={{.AzureDefinitionID}}&_a=summary", isAzure},
+		"azure-coverage": &Badge{"https://img.shields.io/azure-devops/coverage/{{.AzureOrganization}}/{{.AzureProject}}/{{.AzureDefinitionID}}", "{{.URL}}", isAzure},
 
 		"github-branches":     &GithubBranches{},
 		"github-forks":        &GithubProject{"forks"},                                                                            // &Badge{"https://img.shields.io/github/forks/{{.Namespace}}/{{.Name}}?label=Fork", "{{.URL}}/network", isGitHub},
@@ -35,12 +35,12 @@ var (
 		"github-license":      &GithubProject{"license"},                                                                          // &Badge{"https://img.shields.io/github/license/{{.Namespace}}/{{.Name}}", "{{.URL}}/blob/master/LICENSE", isGitHub},
 		"github-newcommits":   &Badge{"https://img.shields.io/github/commits-since/{{.Namespace}}/{{.Name}}/latest", "{{.URL}}", isGitHub},
 		"github-pipeline":     &Badge{"{{.URL}}/workflows/{{.Workflow}}/badge.svg", "{{.URL}}/actions", isGitHub},
-		"github-pullrequests": &GithubMergeRequests{},  // &Badge{"https://img.shields.io/github/issues-pr/{{.Namespace}}/{{.Name}}", "{{.URL}}/pulls", isGitHub},
+		"github-pullrequests": &GithubPullRequests{},   // &Badge{"https://img.shields.io/github/issues-pr/{{.Namespace}}/{{.Name}}", "{{.URL}}/pulls", isGitHub},
 		"github-size":         &GithubProject{"size"},  // &Badge{"https://img.shields.io/github/repo-size/{{.Namespace}}/{{.Name}}", "{{.URL}}", isGitHub},
 		"github-stars":        &GithubProject{"stars"}, // &Badge{"https://img.shields.io/github/stars/{{.Namespace}}/{{.Name}}", "{{.URL}}/stargazers", isGitHub},
 		"github-version":      &GithubTag{},            // &Badge{"https://img.shields.io/github/v/tag/{{.Namespace}}/{{.Name}}?sort=semver", "{{.URL}}", isGitHub},
 		"github-visibility":   &GithubProject{"visibility"},
-		"github-watchers":     &Badge{"https://img.shields.io/github/watchers/{{.Namespace}}/{{.Name}}?label=Watch", "{{.URL}}/watchers", isGitHub}, //  &GithubProject{"watchers"},
+		"github-watchers":     &GithubProject{"watchers"}, //&Badge{"https://img.shields.io/github/watchers/{{.Namespace}}/{{.Name}}?label=Watch", "{{.URL}}/watchers", isGitHub},
 
 		"gitlab-branches":      &GitLabBranches{},
 		"gitlab-coverage":      &Badge{"{{.URL}}/badges/master/coverage.svg", "{{.URL}}/-/jobs/artifacts/master/file/coverage.html?job=unittests", isGitLab},
@@ -99,14 +99,14 @@ func (b *Badge) Render(column string, project Project) string {
 	return buf.String()
 }
 
-func svgBadge(projectname, name, left, right string, color badge.Color, url string) string {
+func svgBadge(hoster, projectname, name, left, right string, color badge.Color, url string) string {
 	b, err := badge.RenderBytes(left, right, color)
 	if err != nil {
 		panic(err)
 	}
-	os.MkdirAll(filepath.Join("badges", projectname), 0777)
-	ioutil.WriteFile(filepath.Join("badges", projectname, name+".svg"), bytes.ReplaceAll(b, []byte("\n"), []byte("")), 0666)
+	os.MkdirAll(filepath.Join("badges", hoster, projectname), 0777)
+	ioutil.WriteFile(filepath.Join("badges", hoster, projectname, name+".svg"), bytes.ReplaceAll(b, []byte("\n"), []byte("")), 0666)
 
-	return fmt.Sprintf("[![%s](badges/%s/%s.svg)](%s)", name, projectname, name, url)
-	// return fmt.Sprintf("[![%s](https://img.shields.io/badge/%s-%s-%s)](%s)", left, left, right, strings.TrimLeft(string(color), "#"), url)
+	return fmt.Sprintf("[![%s](badges/%s/%s/%s.svg)](%s)", name, hoster, projectname, name, url)
+	// fmt.Sprintf("[![%s](https://img.shields.io/badge/%s-%s-%s)](%s)", left, left, right, strings.TrimLeft(string(color), "#"), url)
 }

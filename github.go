@@ -11,9 +11,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type GithubMergeRequests struct{}
+type GithubPullRequests struct{}
 
-func (b *GithubMergeRequests) Render(column string, project Project) string {
+func (b *GithubPullRequests) Render(column string, project Project) string {
 	if !isGitHub(project) {
 		return ""
 	}
@@ -32,14 +32,14 @@ func (b *GithubMergeRequests) Render(column string, project Project) string {
 
 	_, response, err := gl.PullRequests.List(context.Background(), project.Namespace, project.Name, opt)
 	if err != nil {
-		return svgBadge(project.Name, "mergerequests", "merge requests", err.Error(), badge.ColorLightgrey, project.URL)
+		return svgBadge(project.Hoster, project.Name, "pullrequests", "pull requests", err.Error(), badge.ColorLightgrey, project.URL+"/pulls")
 	}
 
 	color := badge.ColorBrightgreen
 	if response.LastPage > 0 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Name, "mergerequests", "merge requests", fmt.Sprintf("%d open", response.LastPage), color, project.URL)
+	return svgBadge(project.Hoster, project.Name, "pullrequests", "pull requests", fmt.Sprintf("%d open", response.LastPage), color, project.URL+"/pulls")
 }
 
 type GithubBranches struct{}
@@ -59,7 +59,7 @@ func (b *GithubBranches) Render(column string, project Project) string {
 	// opt := github.BranchListOptions{}
 	_, response, err := gl.Repositories.ListBranches(context.Background(), project.Namespace, project.Name, &github.ListOptions{PerPage: 1})
 	if err != nil {
-		return svgBadge(project.Name, "branches", "branches", err.Error(), badge.ColorLightgrey, project.URL)
+		return svgBadge(project.Hoster, project.Name, "branches", "branches", err.Error(), badge.ColorLightgrey, project.URL)
 	}
 
 	branchesCount := response.LastPage
@@ -74,7 +74,7 @@ func (b *GithubBranches) Render(column string, project Project) string {
 	if branchesCount > 2 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Name, "branches", "branches", fmt.Sprintf("%d open", branchesCount), color, project.URL)
+	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d open", branchesCount), color, project.URL)
 }
 
 type GithubTag struct{}
@@ -93,13 +93,13 @@ func (b *GithubTag) Render(column string, project Project) string {
 
 	tags, _, err := gl.Repositories.ListTags(context.Background(), project.Namespace, project.Name, &github.ListOptions{PerPage: 1})
 	if err != nil {
-		return svgBadge(project.Name, "tag", "tag", err.Error(), badge.ColorLightgrey, project.URL)
+		return svgBadge(project.Hoster, project.Name, "tag", "tag", err.Error(), badge.ColorLightgrey, project.URL)
 	}
 	if len(tags) == 0 {
 		return ""
 	}
 	tag := tags[0]
-	return svgBadge(project.Name, "tag", "tag", *tag.Name, badge.ColorBlue, project.URL)
+	return svgBadge(project.Hoster, project.Name, "tag", "tag", *tag.Name, badge.ColorBlue, project.URL)
 }
 
 type GithubProject struct {
@@ -120,7 +120,7 @@ func (b *GithubProject) Render(column string, project Project) string {
 
 	githubProject, _, err := gl.Repositories.Get(context.Background(), project.Namespace, project.Name)
 	if err != nil {
-		return svgBadge(project.Name, "github", "github", err.Error(), badge.ColorLightgrey, project.URL)
+		return svgBadge(project.Hoster, project.Name, "github", "github", err.Error(), badge.ColorLightgrey, project.URL)
 	}
 
 	switch b.field {
@@ -129,7 +129,7 @@ func (b *GithubProject) Render(column string, project Project) string {
 		if githubProject.GetOpenIssuesCount() > 0 {
 			color = badge.ColorYellow
 		}
-		return svgBadge(project.Name, "issues", "issues", fmt.Sprintf("%d open", *githubProject.OpenIssuesCount), color, project.URL)
+		return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d open", *githubProject.OpenIssuesCount), color, project.URL)
 	case "lastcommit":
 		color := badge.ColorRed
 		switch {
@@ -144,9 +144,9 @@ func (b *GithubProject) Render(column string, project Project) string {
 		case time.Now().Add(-time.Hour * 24 * 730).Before(githubProject.UpdatedAt.Time):
 			color = badge.ColorOrange
 		}
-		return svgBadge(project.Name, "lastcommit", "last commit", humanize.Time(githubProject.UpdatedAt.Time), color, project.URL)
+		return svgBadge(project.Hoster, project.Name, "lastcommit", "last commit", humanize.Time(githubProject.UpdatedAt.Time), color, project.URL)
 	case "stars":
-		return svgBadge(project.Name, "stars", "stars", fmt.Sprint(*githubProject.StargazersCount), badge.ColorBlue, project.URL)
+		return svgBadge(project.Hoster, project.Name, "stars", "stars", fmt.Sprint(*githubProject.StargazersCount), badge.ColorBlue, project.URL)
 	case "visibility":
 		color := badge.ColorGreen
 		left := "public"
@@ -154,17 +154,17 @@ func (b *GithubProject) Render(column string, project Project) string {
 			color = badge.ColorLightgray
 			left = "private"
 		}
-		return svgBadge(project.Name, "visibility", "visibility", left, color, project.URL)
+		return svgBadge(project.Hoster, project.Name, "visibility", "visibility", left, color, project.URL)
 	case "forks":
-		return svgBadge(project.Name, "fork", "Fork", fmt.Sprint(*githubProject.ForksCount), badge.ColorBlue, project.URL)
+		return svgBadge(project.Hoster, project.Name, "fork", "Fork", fmt.Sprint(*githubProject.ForksCount), badge.ColorBlue, project.URL)
 	case "size":
-		return svgBadge(project.Name, "reposize", "repo size", humanize.Bytes(uint64(*githubProject.Size)), badge.ColorBlue, project.URL)
+		return svgBadge(project.Hoster, project.Name, "reposize", "repo size", humanize.Bytes(uint64(*githubProject.Size)), badge.ColorBlue, project.URL)
 	case "watchers":
-		return svgBadge(project.Name, "watchers", "watchers", fmt.Sprint(*githubProject.SubscribersCount), badge.ColorBlue, project.URL)
+		return svgBadge(project.Hoster, project.Name, "watchers", "watchers", fmt.Sprint(*githubProject.SubscribersCount), badge.ColorBlue, project.URL)
 	case "license":
-		return svgBadge(project.Name, "license", "license", fmt.Sprint(githubProject.License.SPDXID), badge.ColorBlue, project.URL)
+		return svgBadge(project.Hoster, project.Name, "license", "license", fmt.Sprint(githubProject.License.SPDXID), badge.ColorBlue, project.URL)
 
 	}
 
-	return svgBadge(project.Name, "error", "error", "unknown field", badge.ColorLightgrey, project.URL)
+	return svgBadge(project.Hoster, project.Name, "error", "error", "unknown field", badge.ColorLightgrey, project.URL)
 }

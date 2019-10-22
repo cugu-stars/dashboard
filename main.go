@@ -123,12 +123,20 @@ func parseProject(project Project) (Project, error) {
 func createCell(project Project, column Column) (buf string) {
 	for _, badgeName := range column.Enabled {
 		if !contains(project.Disable, badgeName) && !contains(project.Disable, column.Name) {
-			buf += cells[badgeName].Render(column.Name, project)
+			if cell, ok := cells[badgeName]; ok {
+				buf += cell.Render(column.Name, project)
+			} else {
+				log.Println(badgeName + " missing")
+			}
 		}
 	}
 	for _, badgeName := range column.Disabled {
 		if contains(project.Enable, badgeName) {
-			buf += cells[badgeName].Render(column.Name, project)
+			if cell, ok := cells[badgeName]; ok {
+				buf += cell.Render(column.Name, project)
+			} else {
+				log.Println(badgeName + " missing")
+			}
 		}
 	}
 	return "|" + buf
