@@ -51,7 +51,7 @@ func (b *GitLabBranches) Render(column string, project Project) string {
 	id = strings.Trim(id, "/")
 	_, response, err := gl.Branches.ListBranches(id, options)
 	if err != nil {
-		return svgBadge(project.Hoster, project.Name, "branches", "branches", err.Error(), badge.ColorLightgrey, project.URL+"/branches")
+		return svgBadge(project.Hoster, project.Name, "branches", "branches", err.Error(), badge.ColorLightgrey, project.URL)
 	}
 
 	color := badge.ColorBrightgreen
@@ -61,7 +61,7 @@ func (b *GitLabBranches) Render(column string, project Project) string {
 	if response.TotalItems > 2 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d open", response.TotalItems), color, project.URL+"/branches")
+	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d open", response.TotalItems), color, project.URL)
 }
 
 type GitLabTag struct{}
@@ -78,13 +78,13 @@ func (b *GitLabTag) Render(column string, project Project) string {
 	id = strings.Trim(id, "/")
 	tags, _, err := gl.Tags.ListTags(id, options)
 	if err != nil {
-		return svgBadge(project.Hoster, project.Name, "tag", "tag", err.Error(), badge.ColorLightgrey, project.URL+"/releases")
+		return svgBadge(project.Hoster, project.Name, "tag", "tag", err.Error(), badge.ColorLightgrey, project.URL)
 	}
 	if len(tags) == 0 {
 		return ""
 	}
 	tag := tags[0]
-	return svgBadge(project.Hoster, project.Name, "tag", "tag", tag.Name, badge.ColorBlue, project.URL+"/releases")
+	return svgBadge(project.Hoster, project.Name, "tag", "tag", tag.Name, badge.ColorBlue, project.URL)
 }
 
 type GitLabProject struct {
@@ -116,7 +116,7 @@ func (b *GitLabProject) Render(column string, project Project) string {
 		if gitlabProject.OpenIssuesCount > 0 {
 			color = badge.ColorYellow
 		}
-		return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d open", gitlabProject.OpenIssuesCount), color, project.URL+"/issues")
+		return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d open", gitlabProject.OpenIssuesCount), color, project.URL)
 	case "lastcommit":
 		color := badge.ColorRed
 		switch {
@@ -133,7 +133,7 @@ func (b *GitLabProject) Render(column string, project Project) string {
 		}
 		return svgBadge(project.Hoster, project.Name, "last", "last commit", humanize.Time(*gitlabProject.LastActivityAt), color, project.URL)
 	case "stars":
-		return svgBadge(project.Hoster, project.Name, "stars", "stars", fmt.Sprint(gitlabProject.StarCount), badge.ColorBlue, project.URL+"/stargazers")
+		return svgBadge(project.Hoster, project.Name, "stars", "stars", fmt.Sprint(gitlabProject.StarCount), badge.ColorBlue, project.URL)
 	case "visibility":
 		color := badge.ColorBlue
 		switch gitlabProject.Visibility {
@@ -144,7 +144,7 @@ func (b *GitLabProject) Render(column string, project Project) string {
 		}
 		return svgBadge(project.Hoster, project.Name, "visibility", "visibility", string(gitlabProject.Visibility), color, project.URL)
 	case "forks":
-		return svgBadge(project.Hoster, project.Name, "fork", "Fork", fmt.Sprint(gitlabProject.ForksCount), badge.ColorBlue, project.URL+"/network/members")
+		return svgBadge(project.Hoster, project.Name, "fork", "Fork", fmt.Sprint(gitlabProject.ForksCount), badge.ColorBlue, project.URL)
 	case "size":
 		return svgBadge(project.Hoster, project.Name, "reposize", "repo size", humanize.Bytes(uint64(gitlabProject.Statistics.RepositorySize)), badge.ColorBlue, project.URL)
 	}
