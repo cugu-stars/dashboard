@@ -233,7 +233,7 @@ func (b *GithubProject) size(project Project) string {
 	if errBadge != nil {
 		return *errBadge
 	}
-	return svgBadge(project.Hoster, project.Name, "reposize", "repo size", humanize.Bytes(uint64(*githubProject.Size)), badge.ColorBlue, project.URL)
+	return svgBadge(project.Hoster, project.Name, "reposize", "repo size", humanize.Bytes(uint64(*githubProject.Size)*1024), badge.ColorBlue, project.URL)
 }
 
 func (b *GithubProject) watchers(project Project) string {
