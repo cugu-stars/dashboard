@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/html"
@@ -63,28 +64,73 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
 func run() error {
 	config, err := parseInput()
 	if err != nil {
 		return err
 	}
+	setup()
+
+	var wg sync.WaitGroup
+	var badges sync.Map
+	for _, category := range config.Categories {
+		for pID, project := range category.Projects {
+			project, err = parseProject(project)
+			if err != nil {
+				log.Println(err)
+			}
+			category.Projects[pID] = project
+
+			for _, column := range config.Table {
+				for _, badgeName := range column.Enabled {
+					wg.Add(1)
+					go func(category Category, project Project, badgeName string) {
+						defer wg.Done()
+						if !contains(project.Disable, badgeName) && !contains(project.Disable, column.Name) {
+							if renderFunc, ok := cells[badgeName]; ok {
+								badges.Store(category.Name+project.URL+badgeName, renderFunc(project))
+							} else {
+								log.Println(badgeName + " badge missing")
+							}
+						}
+					}(category, project, badgeName)
+				}
+				for _, badgeName := range column.Disabled {
+					wg.Add(1)
+					go func(category Category, project Project, badgeName string) {
+						defer wg.Done()
+						if contains(project.Enable, badgeName) {
+							if renderFunc, ok := cells[badgeName]; ok {
+								badges.Store(category.Name+project.URL+badgeName, renderFunc(project))
+							} else {
+								log.Println(badgeName + " badge missing")
+							}
+						}
+					}(category, project, badgeName)
+				}
+			}
+		}
+	}
+	wg.Wait()
 
 	buf := ""
 	for _, category := range config.Categories {
 		buf += "## " + category.Name + "\n\n" + createHeader(config.Table)
 		for _, project := range category.Projects {
-			project, err = parseProject(project)
-			if err != nil {
-				return err
-			}
-
+			buf += "|"
 			for _, column := range config.Table {
-				buf += createCell(project, column)
+				for _, badgeName := range append(column.Enabled, column.Disabled...) {
+					if b, ok := badges.Load(category.Name + project.URL + badgeName); ok {
+						buf += b.(string)
+					}
+				}
+				buf += "|"
 			}
-			buf += "|\n"
+			buf += "\n"
 		}
-
 	}
+
 	ioutil.WriteFile("index.md", []byte(buf), 0666)
 	return createHTML("index", []byte(buf))
 }
@@ -120,35 +166,11 @@ func parseProject(project Project) (Project, error) {
 	return project, nil
 }
 
-func createCell(project Project, column Column) (buf string) {
-	for _, badgeName := range column.Enabled {
-		if !contains(project.Disable, badgeName) && !contains(project.Disable, column.Name) {
-			if cell, ok := cells[badgeName]; ok {
-				buf += cell.Render(column.Name, project)
-			} else {
-				log.Println(badgeName + " missing")
-			}
-		}
-	}
-	for _, badgeName := range column.Disabled {
-		if contains(project.Enable, badgeName) {
-			if cell, ok := cells[badgeName]; ok {
-				buf += cell.Render(column.Name, project)
-			} else {
-				log.Println(badgeName + " missing")
-			}
-		}
-	}
-	return "|" + buf
-}
-
 func createHTML(name string, md []byte) error {
-	htmlFlags := html.CommonFlags | html.HrefTargetBlank | html.CompletePage
-	opts := html.RendererOptions{
-		Flags: htmlFlags,
+	renderer := html.NewRenderer(html.RendererOptions{
+		Flags: html.CommonFlags | html.HrefTargetBlank | html.CompletePage,
 		CSS:   "style/style.css",
-	}
-	renderer := html.NewRenderer(opts)
+	})
 
 	output := markdown.ToHTML(md, nil, renderer)
 	return ioutil.WriteFile(name+".html", output, 0666)
