@@ -214,10 +214,21 @@ func (b *GithubProject) visibility(project Project) string {
 	if errBadge != nil {
 		return *errBadge
 	}
+
+	color := badge.ColorGreen
+	text := "public"
 	if *githubProject.Private {
-		return svgBadge(project.Hoster, project.Name, "visibility", "visibility", "private", badge.ColorLightgray, project.URL)
+		text = "private"
+		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "visibility", "visibility", "public", badge.ColorGreen, project.URL)
+
+	archived := ""
+	if *githubProject.Archived {
+		archived = " archived"
+		color = badge.ColorGray
+	}
+
+	return svgBadge(project.Hoster, project.Name, "visibility", "visibility", text+archived, color, project.URL)
 }
 
 func (b *GithubProject) forks(project Project) string {
