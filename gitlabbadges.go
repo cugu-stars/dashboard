@@ -168,7 +168,7 @@ func (b *GitLabProject) visibility(project Project) string {
 	color := badge.ColorBlue
 	switch gitlabProject.Visibility {
 	case gitlab.PrivateVisibility:
-		color = badge.ColorLightgray
+		color = badge.ColorYellow
 	case gitlab.PublicVisibility:
 		color = badge.ColorGreen
 	}

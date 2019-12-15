@@ -225,7 +225,7 @@ func (b *GithubProject) visibility(project Project) string {
 	archived := ""
 	if *githubProject.Archived {
 		archived = " archived"
-		color = badge.ColorGray
+		color = badge.ColorLightgray
 	}
 
 	return svgBadge(project.Hoster, project.Name, "visibility", "visibility", text+archived, color, project.URL)
