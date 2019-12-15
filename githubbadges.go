@@ -96,7 +96,7 @@ func (b *GithubProject) pullRequests(project Project) string {
 	if count > 0 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "pullrequests", "pull requests", fmt.Sprintf("%d open", count), color, project.URL+"/pulls")
+	return svgBadge(project.Hoster, project.Name, "pullrequests", "pull requests", fmt.Sprintf("%d", count), color, project.URL+"/pulls")
 }
 
 func (b *GithubProject) branches(project Project) string {
@@ -121,7 +121,7 @@ func (b *GithubProject) branches(project Project) string {
 	default:
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d open", branchesCount), color, project.URL+"/branches")
+	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d", branchesCount), color, project.URL+"/branches")
 }
 
 func (b *GithubProject) tag(project Project) string {
@@ -176,7 +176,7 @@ func (b *GithubProject) issues(project Project) string {
 		color = badge.ColorYellow
 	}
 
-	return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d open", issueCount), color, project.URL+"/issues")
+	return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d", issueCount), color, project.URL+"/issues")
 }
 
 func (b *GithubProject) lastcommit(project Project) string {

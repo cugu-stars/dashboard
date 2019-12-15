@@ -71,7 +71,7 @@ func (b *GitLabProject) mergerequests(project Project) string {
 	if response.TotalItems > 0 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "mergerequests", "merge requests", fmt.Sprintf("%d open", response.TotalItems), color, project.URL)
+	return svgBadge(project.Hoster, project.Name, "mergerequests", "merge requests", fmt.Sprintf("%d", response.TotalItems), color, project.URL)
 }
 
 func (b *GitLabProject) branches(project Project) string {
@@ -95,7 +95,7 @@ func (b *GitLabProject) branches(project Project) string {
 	if response.TotalItems > 2 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d open", response.TotalItems), color, project.URL)
+	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d", response.TotalItems), color, project.URL)
 }
 
 func (b *GitLabProject) tag(project Project) string {
@@ -128,7 +128,7 @@ func (b *GitLabProject) issues(project Project) string {
 	if gitlabProject.OpenIssuesCount > 0 {
 		color = badge.ColorYellow
 	}
-	return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d open", gitlabProject.OpenIssuesCount), color, project.URL)
+	return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d", gitlabProject.OpenIssuesCount), color, project.URL)
 }
 
 func (b *GitLabProject) lastcommit(project Project) string {
