@@ -40,7 +40,7 @@ categories:
   - name: index
     projects:
     - url: https://github.com/cugu/afro
-      enable: ['travis']
+      enable: ['travis', 'github-sloc']
     - url: https://github.com/cugu/apfs.ksy
       disable: ["version", "newcommits", "build"]
     - url: https://github.com/cugu/awesome-forensics

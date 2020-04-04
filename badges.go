@@ -46,6 +46,7 @@ func setup() {
 		"github-version":      githubProject.tag,
 		"github-visibility":   githubProject.visibility,
 		"github-watchers":     githubProject.watchers,
+		"github-sloc":         markdownBadge("https://sloc.xyz/github/{{.Namespace}}/{{.Name}}/", "{{.URL}}", isGitHub),
 		// "github-forks":        markdownBadge("https://img.shields.io/github/forks/{{.Namespace}}/{{.Name}}?label=Fork", "{{.URL}}/network", isGitHub),
 		// "github-issues":       markdownBadge("https://img.shields.io/github/issues/{{.Namespace}}/{{.Name}}", "{{.URL}}/issues", isGitHub),
 		// "github-lastcommit":   githubProject.lastcommit,
