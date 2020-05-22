@@ -150,7 +150,7 @@ func createHeader(table []Column) (buf string) {
 		buf += "| " + column.Name + " "
 		seperationRow += "| --- "
 	}
-	return buf + " |\n" + seperationRow + " |\n"
+	return seperationRow + " |\n" + buf + " |\n"
 }
 
 func parseProject(project Project) (Project, error) {
