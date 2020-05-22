@@ -71,7 +71,10 @@ func setup() {
 	}
 }
 
-func svgBadge(hoster, projectname, name, left, right string, color badge.Color, url string) string {
+func svgBadge(hoster, projectname, name, left, right string, color badge.Color, url string, err error) string {
+	if len(right) > 40 {
+		right = right[:35]
+	}
 	b, err := badge.RenderBytes("", right, color)
 	if err != nil {
 		panic(err)
@@ -79,6 +82,10 @@ func svgBadge(hoster, projectname, name, left, right string, color badge.Color, 
 	os.MkdirAll(filepath.Join("badges", hoster, projectname), 0777)
 	ioutil.WriteFile(filepath.Join("badges", hoster, projectname, name+".svg"), bytes.ReplaceAll(b, []byte("\n"), []byte("")), 0666)
 
-	return fmt.Sprintf("[![%s](badges/%s/%s/%s.svg)](%s)", name, hoster, projectname, name, url)
+	e := ""
+	if err != nil {
+		e = err.Error()
+	}
+	return fmt.Sprintf("[![%s](badges/%s/%s/%s.svg)](%s)<!--%s-->", name, hoster, projectname, name, url, e)
 	// fmt.Sprintf("[![%s](https://img.shields.io/badge/%s-%s-%s)](%s)", left, left, right, strings.TrimLeft(string(color), "#"), url)
 }
