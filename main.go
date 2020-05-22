@@ -116,7 +116,8 @@ func run() error {
 
 	buf := ""
 	for _, category := range config.Categories {
-		buf += "## " + category.Name + "\n\n" + createHeader(config.Table)
+		buf += "| **"  + category.Name + "** " + strings.Repeat("|", len(config.Table)) + "\n"
+		buf += createHeader(config.Table)
 		for _, project := range category.Projects {
 			buf += "|"
 			for _, column := range config.Table {
