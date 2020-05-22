@@ -72,7 +72,7 @@ func setup() {
 }
 
 func svgBadge(hoster, projectname, name, left, right string, color badge.Color, url string) string {
-	b, err := badge.RenderBytes(left, right, color)
+	b, err := badge.RenderBytes("", right, color)
 	if err != nil {
 		panic(err)
 	}
