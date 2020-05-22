@@ -117,7 +117,9 @@ func run() error {
 	buf := ""
 	for i, category := range config.Categories {
 		buf += "| **"  + category.Name + "** " + strings.Repeat("|", len(config.Table)) + "\n"
-		buf += createHeader(config.Table, i == 0)
+		if i == 0 {
+			buf += createHeader(config.Table)
+		}
 		for _, project := range category.Projects {
 			buf += "|"
 			for _, column := range config.Table {
@@ -144,16 +146,13 @@ func parseInput() (config YAML, err error) {
 	return config, yaml.Unmarshal(yamlFile, &config)
 }
 
-func createHeader(table []Column, first bool) (buf string) {
+func createHeader(table []Column) (buf string) {
 	seperationRow := ""
 	for _, column := range table {
 		buf += "| " + column.Name + " "
 		seperationRow += "| --- "
 	}
-	if first {
-		return seperationRow + " |\n" + buf + " |\n"
-	}
-	return buf + " |\n"
+	return seperationRow + " |\n" + buf + " |\n"
 }
 
 func parseProject(project Project) (Project, error) {
