@@ -8,7 +8,7 @@ require (
 	github.com/enfipy/locker v1.1.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/gomarkdown/markdown v0.0.0-20190912180731-281270bc6d83
+	github.com/gomarkdown/markdown v0.0.0-20200824053859-8c8b3816f167
 	github.com/google/go-github/v28 v28.1.1
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/narqo/go-badge v0.0.0-20190124110329-d9415e4e1e9f
