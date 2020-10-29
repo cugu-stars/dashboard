@@ -1,7 +1,8 @@
-package main
+package badge
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -14,6 +15,35 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var isGitHub = func(p Project) bool { return p.Hoster == "github.com" }
+
+func InitGitHubBadges(githubAccessToken string) {
+	githubProject := NewGithubProject(githubAccessToken)
+	badges["github-branches"] = githubProject.branches
+	badges["github-forks"] = githubProject.forks
+	badges["github-issues"] = githubProject.issues
+	badges["github-lastcommit"] = markdownBadge("https://img.shields.io/github/last-commit/{{.Namespace}}/{{.Name}}", "{{.URL}}", isGitHub)
+	badges["github-license"] = githubProject.license
+	badges["github-newcommits"] = githubProject.commitssince
+	badges["github-pipeline"] = markdownBadge("{{.URL}}/workflows/{{.Workflow}}/badge.svg", "{{.URL}}/actions", isGitHub)
+	badges["github-pullrequests"] = githubProject.pullRequests
+	badges["github-size"] = githubProject.size
+	badges["github-stars"] = githubProject.stars
+	badges["github-version"] = githubProject.tag
+	badges["github-visibility"] = githubProject.visibility
+	badges["github-watchers"] = githubProject.watchers
+	badges["github-sloc"] = markdownBadge("https://sloc.xyz/github/{{.Namespace}}/{{.Name}}/", "{{.URL}}", isGitHub)
+	// "github-forks":        markdownBadge("https://img.shields.io/github/forks/{{.Namespace}}/{{.Name}}?label=Fork", "{{.URL}}/network", isGitHub),
+	// "github-issues":       markdownBadge("https://img.shields.io/github/issues/{{.Namespace}}/{{.Name}}", "{{.URL}}/issues", isGitHub),
+	badges["github-lastcommit"] = githubProject.lastcommit
+	// "github-license":      markdownBadge("https://img.shields.io/github/license/{{.Namespace}}/{{.Name}}", "{{.URL}}/blob/master/LICENSE", isGitHub),
+	// "github-pullrequests": markdownBadge("https://img.shields.io/github/issues-pr/{{.Namespace}}/{{.Name}}", "{{.URL}}/pulls", isGitHub),
+	// "github-size":         markdownBadge("https://img.shields.io/github/repo-size/{{.Namespace}}/{{.Name}}", "{{.URL}}", isGitHub),
+	// "github-stars":        markdownBadge("https://img.shields.io/github/stars/{{.Namespace}}/{{.Name}}", "{{.URL}}/stargazers", isGitHub),
+	// "github-version":      markdownBadge("https://img.shields.io/github/v/tag/{{.Namespace}}/{{.Name}}?sort=semver", "{{.URL}}", isGitHub),
+	// "github-watchers":     markdownBadge("https://img.shields.io/github/watchers/{{.Namespace}}/{{.Name}}?label=Watch", "{{.URL}}/watchers", isGitHub),
+}
+
 type GithubProject struct {
 	client                *github.Client
 	locker                *locker.Locker
@@ -21,13 +51,13 @@ type GithubProject struct {
 	pullrequestCountCache sync.Map
 }
 
-func NewGithubProject() *GithubProject {
+func NewGithubProject(githubAccessToken string) *GithubProject {
 	return &GithubProject{
 		client: github.NewClient(
 			oauth2.NewClient(
 				context.Background(),
 				oauth2.StaticTokenSource(
-					&oauth2.Token{AccessToken: GITHUB_ACCESS_TOKEN},
+					&oauth2.Token{AccessToken: githubAccessToken},
 				),
 			),
 		),
@@ -35,10 +65,9 @@ func NewGithubProject() *GithubProject {
 	}
 }
 
-func (b *GithubProject) getProject(project Project) (*github.Repository, *string) {
+func (b *GithubProject) getProject(project Project) (*github.Repository, *Badge) {
 	if !isGitHub(project) {
-		s := ""
-		return nil, &s
+		return nil, svgBadge(project.Hoster, project.Name, "github", "github", "Not a GitHub project", badge.ColorLightgrey, project.URL, errors.New("not a GitHub project"))
 	}
 
 	b.locker.Lock("repo" + project.URL)
@@ -50,8 +79,7 @@ func (b *GithubProject) getProject(project Project) (*github.Repository, *string
 	}
 	githubProject, _, err := b.client.Repositories.Get(context.Background(), project.Namespace, project.Name)
 	if err != nil {
-		badge := svgBadge(project.Hoster, project.Name, "github", "github", "Error", badge.ColorLightgrey, project.URL, err)
-		return nil, &badge
+		return nil, svgBadge(project.Hoster, project.Name, "github", "github", "Error", badge.ColorLightgrey, project.URL, err)
 	}
 
 	b.repositoryCache.Store(project.URL, githubProject)
@@ -82,9 +110,9 @@ func (b *GithubProject) pullRequestCount(project Project) (int, error) {
 	return count.(int), nil
 }
 
-func (b *GithubProject) pullRequests(project Project) string {
+func (b *GithubProject) pullRequests(project Project) *Badge {
 	if !isGitHub(project) {
-		return ""
+		return nil
 	}
 
 	count, err := b.pullRequestCount(project)
@@ -99,9 +127,9 @@ func (b *GithubProject) pullRequests(project Project) string {
 	return svgBadge(project.Hoster, project.Name, "pullrequests", "pull requests", fmt.Sprintf("%d", count), color, project.URL+"/pulls", nil)
 }
 
-func (b *GithubProject) branches(project Project) string {
+func (b *GithubProject) branches(project Project) *Badge {
 	if !isGitHub(project) {
-		return ""
+		return nil
 	}
 
 	_, response, err := b.client.Repositories.ListBranches(context.Background(), project.Namespace, project.Name, &github.ListOptions{PerPage: 1})
@@ -124,9 +152,9 @@ func (b *GithubProject) branches(project Project) string {
 	return svgBadge(project.Hoster, project.Name, "branches", "branches", fmt.Sprintf("%d", branchesCount), color, project.URL+"/branches", nil)
 }
 
-func (b *GithubProject) tag(project Project) string {
+func (b *GithubProject) tag(project Project) *Badge {
 	if !isGitHub(project) {
-		return ""
+		return nil
 	}
 
 	tags, _, err := b.client.Repositories.ListTags(context.Background(), project.Namespace, project.Name, &github.ListOptions{PerPage: 1})
@@ -134,14 +162,14 @@ func (b *GithubProject) tag(project Project) string {
 		return svgBadge(project.Hoster, project.Name, "tag", "tag", "Error", badge.ColorLightgrey, project.URL+"/releases", err)
 	}
 	if len(tags) == 0 {
-		return ""
+		return nil
 	}
 	return svgBadge(project.Hoster, project.Name, "tag", "tag", *(tags[0]).Name, badge.ColorBlue, project.URL+"/releases", nil)
 }
 
-func (b *GithubProject) commitssince(project Project) string {
+func (b *GithubProject) commitssince(project Project) *Badge {
 	if !isGitHub(project) {
-		return ""
+		return nil
 	}
 
 	tags, _, err := b.client.Repositories.ListTags(context.Background(), project.Namespace, project.Name, &github.ListOptions{PerPage: 1})
@@ -149,15 +177,19 @@ func (b *GithubProject) commitssince(project Project) string {
 		return svgBadge(project.Hoster, project.Name, "tag", "tag", "Error", badge.ColorLightgrey, project.URL+"/releases", nil)
 	}
 	if len(tags) == 0 {
-		return ""
+		return nil
 	}
 	return markdownBadge("https://img.shields.io/github/commits-since/{{.Namespace}}/{{.Name}}/latest", "{{.URL}}", isGitHub)(project)
 }
 
-func (b *GithubProject) issues(project Project) string {
+func (b *GithubProject) issues(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
 
 	if !*githubProject.HasIssues {
@@ -179,10 +211,14 @@ func (b *GithubProject) issues(project Project) string {
 	return svgBadge(project.Hoster, project.Name, "issues", "issues", fmt.Sprintf("%d", issueCount), color, project.URL+"/issues", nil)
 }
 
-func (b *GithubProject) lastcommit(project Project) string {
+func (b *GithubProject) lastcommit(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
 
 	color := badge.ColorRed
@@ -201,18 +237,26 @@ func (b *GithubProject) lastcommit(project Project) string {
 	return svgBadge(project.Hoster, project.Name, "lastcommit", "last commit", humanize.Time(githubProject.UpdatedAt.Time), color, project.URL, nil)
 }
 
-func (b *GithubProject) stars(project Project) string {
+func (b *GithubProject) stars(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
 	return svgBadge(project.Hoster, project.Name, "stars", "stars", fmt.Sprint(*githubProject.StargazersCount), badge.ColorBlue, project.URL+"/stargazers", nil)
 }
 
-func (b *GithubProject) visibility(project Project) string {
+func (b *GithubProject) visibility(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
 
 	color := badge.ColorGreen
@@ -231,36 +275,66 @@ func (b *GithubProject) visibility(project Project) string {
 	return svgBadge(project.Hoster, project.Name, "visibility", "visibility", text+archived, color, project.URL, nil)
 }
 
-func (b *GithubProject) forks(project Project) string {
+func (b *GithubProject) forks(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
 	return svgBadge(project.Hoster, project.Name, "fork", "Fork", fmt.Sprint(*githubProject.ForksCount), badge.ColorBlue, project.URL+"/network/members", nil)
 }
 
-func (b *GithubProject) size(project Project) string {
+func (b *GithubProject) size(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
-	return svgBadge(project.Hoster, project.Name, "reposize", "repo size", humanize.Bytes(uint64(*githubProject.Size)*1024), badge.ColorBlue, project.URL, nil)
+
+	color := badge.ColorBrightgreen
+	switch {
+	case uint64(*githubProject.Size) > 1024*100:
+		color = badge.ColorRed
+	case uint64(*githubProject.Size) > 1024*50:
+		color = badge.ColorOrange
+	case uint64(*githubProject.Size) > 1024*10:
+		color = badge.ColorYellow
+	case uint64(*githubProject.Size) > 1024*5:
+		color = badge.ColorYellowgreen
+	case uint64(*githubProject.Size) > 1024:
+		color = badge.ColorGreen
+	}
+	return svgBadge(project.Hoster, project.Name, "reposize", "repo size", humanize.Bytes(uint64(*githubProject.Size)*1024), color, project.URL, nil)
 }
 
-func (b *GithubProject) watchers(project Project) string {
+func (b *GithubProject) watchers(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 	if errBadge != nil {
-		return *errBadge
+		return errBadge
 	}
 	return svgBadge(project.Hoster, project.Name, "watchers", "watchers", fmt.Sprint(*githubProject.SubscribersCount), badge.ColorBlue, project.URL, nil)
 }
 
-func (b *GithubProject) license(project Project) string {
+func (b *GithubProject) license(project Project) *Badge {
+	if !isGitHub(project) {
+		return nil
+	}
+
 	githubProject, errBadge := b.getProject(project)
 
 	switch {
 	case errBadge != nil:
-		return *errBadge
+		return errBadge
 	case githubProject.License == nil:
 		return svgBadge(project.Hoster, project.Name, "license", "license", "no License", badge.ColorRed, project.URL, nil)
 	case *githubProject.License.SPDXID == "NOASSERTION":
