@@ -38,6 +38,8 @@ type Category struct {
 }
 
 func main() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	
 	gitlabAccessToken := flag.String("gitlab", LookupEnvOrString("GITLAB_ACCESS_TOKEN"), "GitLab access token")
 	gitlabPushBadges := flag.Bool("gitlab-push-badges", strings.ToLower(LookupEnvOrString("GITLAB_PUSH_BADGES")) == "true", "push badges to GitLab")
 	githubAccessToken := flag.String("github", LookupEnvOrString("GITHUB_ACCESS_TOKEN"), "GitHub access token")
