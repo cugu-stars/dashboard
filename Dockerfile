@@ -1,6 +1,6 @@
 FROM github/super-linter:latest
 
-RUN pip3 install pycodestyle
+RUN pip3 install pycodestyle bandit
 RUN apk add --no-cache go git
 
 ENV GO111MODULE="on"
