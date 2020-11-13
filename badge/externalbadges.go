@@ -26,7 +26,7 @@ func shhgit(project Project) *Badge {
 		return errorBadge("shhgit", project, err)
 	}
 
-	cmd := exec.Command("/root/go/bin/shhgit", "--config-path", "/shhgit/config.yaml", "--local", projectPath)
+	cmd := exec.Command("/root/go/bin/shhgit", "--config-path", "/shhgit", "--local", projectPath)
 	var out, errb bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errb
