@@ -16,6 +16,27 @@ import (
 func InitExternalCommandBadges() {
 	badges["pycodestyle"] = pycodestyle
 	badges["superlint"] = superlint
+	badges["bandit"] = bandit
+}
+
+func bandit(project Project) *Badge {
+	projectPath, err := download(project)
+	if err != nil {
+		return errorBadge("bandit", project, err)
+	}
+
+	cmd := exec.Command("bandit", projectPath)
+	var out, errb bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errb
+	err = cmd.Run()
+	if err != nil {
+		banditLog := filepath.Join("badges", project.Hoster, project.Name, "bandit.txt")
+		b := svgBadge(project.Hoster, project.Name, "bandit", "bandit", "invalid", badge.ColorRed, banditLog, nil)
+		_ = ioutil.WriteFile(banditLog, out.Bytes(), 0666)
+		return b
+	}
+	return svgBadge(project.Hoster, project.Name, "bandit", "bandit", "valid", badge.ColorBrightgreen, "https://pypi.org/project/bandit/", nil)
 }
 
 func pycodestyle(project Project) *Badge {
