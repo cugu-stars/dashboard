@@ -46,7 +46,7 @@ func bandit(project Project) *Badge {
 		return errorBadge("bandit", project, err)
 	}
 
-	cmd := exec.Command("bandit", projectPath)
+	cmd := exec.Command("bandit", "-r", projectPath)
 	var out, errb bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errb
