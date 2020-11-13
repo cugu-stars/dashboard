@@ -17,6 +17,27 @@ func InitExternalCommandBadges() {
 	badges["pycodestyle"] = pycodestyle
 	badges["superlint"] = superlint
 	badges["bandit"] = bandit
+	badges["shhgit"] = shhgit
+}
+
+func shhgit(project Project) *Badge {
+	projectPath, err := download(project)
+	if err != nil {
+		return errorBadge("shhgit", project, err)
+	}
+
+	cmd := exec.Command("shhgit", "--config-path", "/shhgit/config.yaml", "--local", projectPath)
+	var out, errb bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errb
+	err = cmd.Run()
+	if err != nil {
+		shhgitLog := filepath.Join("badges", project.Hoster, project.Name, "shhgit.txt")
+		b := svgBadge(project.Hoster, project.Name, "shhgit", "shhgit", "invalid", badge.ColorRed, shhgitLog, nil)
+		_ = ioutil.WriteFile(shhgitLog, out.Bytes(), 0666)
+		return b
+	}
+	return svgBadge(project.Hoster, project.Name, "shhgit", "shhgit", "valid", badge.ColorBrightgreen, "https://github.com/eth0izzle/shhgit", nil)
 }
 
 func bandit(project Project) *Badge {
