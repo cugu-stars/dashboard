@@ -26,7 +26,7 @@ func icon(project Project) *Badge {
 
 func owner(project Project) *Badge {
 	if owner, ok := project.Meta["owner"]; ok {
-		svgBadge(project.Hoster, project.Name, "owner", "owner", owner, badge.ColorBlue, project.URL, nil)
+		return svgBadge(project.Hoster, project.Name, "owner", "owner", owner, badge.ColorBlue, project.URL, nil)
 	}
 	return svgBadge(project.Hoster, project.Name, "owner", "owner", "unknown", badge.ColorRed, project.URL, nil)
 }
